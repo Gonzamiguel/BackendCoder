@@ -1,4 +1,3 @@
-import { json } from "express";
 import fs from "fs";
 
 class ProductManager {
@@ -8,15 +7,27 @@ class ProductManager {
     }
 
     async addProduct(newProduct) {
-        const codeExist = this.products.some(product => product.code === newProduct.code);
-        if(!codeExist){
-            newProduct.id = this.products.length + 1;
-            this.products.push(newProduct);
-            await fs.promises.writeFile(this.file, JSON.stringify(this.products), 'utf-8');
-        } else {
-            console.log(`El codigo ya existe (${newProduct.code})`);
+        try {
+            // Obtener la lista actual de productos
+            let products = await this.getProducts(0);
+            
+            // Verificar si ya existe un producto con el mismo código
+            const codeExist = products.some(product => product.code === newProduct.code);
+            if (codeExist) {
+                throw new Error(`El código ${newProduct.code} ya está en uso.`);
+            }
+            
+            // Agregar el nuevo producto a la lista
+            products.push(newProduct);
+            
+            // Escribir los productos actualizados en el archivo JSON
+            await fs.promises.writeFile(this.file, JSON.stringify(products), 'utf-8');
+            
+            return newProduct;
+        } catch (error) {
+            throw new Error(`Error al agregar el nuevo producto: ${error.message}`);
         }
-    } 
+    }
     
     async getProducts(limit) {
         const products = await fs.promises.readFile(this.file, 'utf-8');
@@ -34,8 +45,22 @@ class ProductManager {
         this.products = parsedProducts ;
 
 
-        const product = this.products.find(product => product.id === +id) ||  {};
+        const product = this.products.find(product => product.id === (id)) || {};
+
         return product;
+    }
+
+    async deleteProduct(id) {
+        let products = await this.getProducts(0);
+        const index = products.findIndex(product => product.id === id);
+        
+        if (index !== -1) {
+            const deletedProduct = products.splice(index, 1)[0];
+            await fs.promises.writeFile(this.file, JSON.stringify(products), 'utf-8');
+            return deletedProduct;
+        } else {
+            return null;
+        }
     }
 };
 
