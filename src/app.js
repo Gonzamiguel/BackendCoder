@@ -1,6 +1,6 @@
 import express from 'express';
 import handlebars from 'express-handlebars';
-import { Server } from 'socket.io';
+import  initSocket  from './initSocket.js';
 import config from './config.js';
 import productsRoutes from './routes/products.routes.js';
 import cartRoutes from './routes/carts.routes.js';
@@ -8,6 +8,13 @@ import viewsRoutes from './routes/views.routes.js';
 
 
 const app = express();
+
+const expressInstance = app.listen(config.PORT, () => {
+    console.log(`Servidor escuchando en el puerto http://localhost:${config.PORT}`);
+});
+
+const socketServer = initSocket(expressInstance);
+app.set('socketServer', socketServer);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -27,16 +34,3 @@ app.use('/api/cart', cartRoutes);
 app.use('/static', express.static(`${config.DIRNAME}/public`));
 
 
-const httpServer = app.listen(config.PORT, () => {
-    console.log(`Servidor activo en ${config.PORT}`);
-});
-
-const socketServer = new Server(httpServer);
-socketServer.on('connection', client => {
-    console.log(`Cliente conectado, id ${client.id} desde ${client.handshake.address}`);
-
-    client.on('newMessage', data => {
-        console.log(`Mensaje recibido desde ${client.id} : ${data}`);
-        client.emit('newMessageConfirmation', 'Ok');
-    })
-});

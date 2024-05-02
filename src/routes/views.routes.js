@@ -4,7 +4,9 @@ import products from '../productos.json' assert { type : "json"};
 const router = Router();
 
 
+
 router.get('/home', (req,res) => {
+
     const viewProducts = { products : products};
 
     res.render('home', viewProducts);
@@ -12,7 +14,8 @@ router.get('/home', (req,res) => {
 });
 
 router.get('/realtimeproducts', (req,res) => {
-
+    res.render('realtimeproducts', {products : products});
 });
+
 
 export default router;
