@@ -7,6 +7,8 @@ import fs from 'fs';
 const router = Router();
 const MANAGER = new ProductManager('./src/productos.json');
 
+
+
 router.get('/', async (req, res) => {
     try {
         const limit = +req.query.limit || 0;

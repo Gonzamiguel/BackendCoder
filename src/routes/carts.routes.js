@@ -1,8 +1,7 @@
 import {Router} from 'express';
 import Cart from '../cart.js';
-import crypto from 'crypto';
-import {uploader} from '../uploader.js'
-import fs from 'fs';
+
+
 
 const router = Router();
 const CartManager = new Cart('./src/cart.json');
@@ -10,7 +9,7 @@ const CartManager = new Cart('./src/cart.json');
 
 router.get('/:cid', async (req, res) => {
     try {
-        const productCart = await CartManager.getProductsByIdCart(req.params.cid);
+        const productCart = await CartManager.getProductsByIdCart(+req.params.cid);
         res.send({ status: 1, payload: productCart });
     } catch (error) {
         console.error('Error al obtener el producto:', error);
@@ -20,6 +19,7 @@ router.get('/:cid', async (req, res) => {
 
 router.post('/', async (req, res) => {
     try {
+        console.log(req.body)
         const quantity = req.body.quantity; 
         if (!quantity) {
             return res.status(400).json({ status: 400, error: 'La cantidad es obligatoria' });
@@ -40,7 +40,7 @@ router.post('/:cid/product/:pid', async (req, res) => {
         if (!product) {
             return res.status(404).json({ error: 'El producto no existe' });
         } 
-        const cart = await CartManager.getCartByIdCart(cid);
+        const cart = await CartManager.getProductsByIdCart(cid);
         const existingProductIndex = cart.products.findIndex(item => String(item.cid) === pid);
         if (existingProductIndex !== -1) {
             cart.products[existingProductIndex].quantity++;

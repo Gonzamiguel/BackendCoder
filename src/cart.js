@@ -1,6 +1,5 @@
-import { json } from 'express';
 import fs, { realpathSync } from 'fs';
-import { parse } from 'path';
+import crypto from 'crypto';
 
 class Cart {
     constructor(file) {
@@ -13,16 +12,24 @@ class Cart {
     }
 
     async createCart(quantity) {
-        await this.readCartFromFile();
-        const newCart = {
-            cid : this.generateRandomId(),
-            quantity: quantity,
-            products: []
-        };
-        this.cart.push(newCart);
-        await this.saveCartToFile();
-        return newCart;
+        try {
+            let productos = await this.getProductsCart(0);
+    
+            const newCart = {
+                cid: this.generateRandomId(),
+                quantity: quantity,
+                products: []
+            };
+    
+            productos.push(newCart);
+            await fs.promises.writeFile(this.file, JSON.stringify(productos), 'utf-8');
+    
+            return newCart;
+        } catch (error) {
+            throw new Error(`Error al crear el carrito: ${error.message}`);
+        }
     }
+    
 
     async addProductCart(newCartProduct) {
         try {
